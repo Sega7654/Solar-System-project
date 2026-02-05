@@ -3,6 +3,7 @@ charset-normalizer==3.4.4
 colorama==0.4.6
 contourpy==1.3.3
 cycler==0.12.1
+DateTime==6.0
 fonttools==4.61.1
 idna==3.11
 iniconfig==2.3.0
