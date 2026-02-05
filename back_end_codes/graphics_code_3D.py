@@ -9,7 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import os
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 
 from back_end_codes.Class_code_3D import Planet
 from back_end_codes.Class_code_3D import Asteroid
@@ -203,7 +203,7 @@ def dynamic_date(date_input, time_step):
     if date_input.lower().strip() == "today":
         initial_date = date.today()
     else:
-        initial_date = date.strptime(date_input, "%Y-%m-%d")
+        initial_date = datetime.strptime(date_input, "%Y-%m-%d")
     result_date = initial_date + timedelta(seconds=time_step)
     return result_date
 
