@@ -1,5 +1,4 @@
 /.pytest_cache
-/__pycache__
+*__pycache__
 /back_end_codes/Diffur_solution_data
 /back_end_codes/API_data_folder
-/back_end_codes/__pycache__
