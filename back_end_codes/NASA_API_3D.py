@@ -107,7 +107,7 @@ def retrieve_Ephemeris_data(Planet_name, date):
 If you sure that "{Planet_name}" is the correct name, use the ID of the object insted of the name.
 You can find the ID from the API result here.""")
         input("\nPrint smth to see the API result: ")
-        raise NameError(f"{content["result"]}""")
+        raise NameError(f"{content["result"]}")
 
     
     start_index_1 = str.index(content["result"], "$$SOE")
