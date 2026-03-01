@@ -29,38 +29,40 @@ def diffur_solving_3D(Planet_input, date_input, Asteroid_input):
     Planets_data = Solar_system_data[0]
     Asteroid_data = Solar_system_data[1]
     folder_path = create_solution_folder()
-    csv_path = os.path.join(folder_path, f"{csv_name_design(Planets_data, date_input, Asteroid_data)}")
+    csv_path = os.path.join(folder_path, f"{csv_name_design(Planets_data, date_input, Asteroid_input)}")
 
     # time array for simulation
     t = time_array()[1]
+
+    # Initial conditions array
+    y_0_system = []
+    if Asteroid.count > 0:
+        for i in range(Asteroid.count):
+            y_0_system = y_0_system + [Asteroid_data[i].x0, Asteroid_data[i].velocity_x0,
+                                    Asteroid_data[i].y0, Asteroid_data[i].velocity_y0,
+                                    Asteroid_data[i].z0, Asteroid_data[i].velocity_z0]
+
+    for i in range(Planet.count):
+        y_0_system = y_0_system + [Planets_data[i].x0, Planets_data[i].velocity_x0,
+                                Planets_data[i].y0, Planets_data[i].velocity_y0,
+                                Planets_data[i].z0, Planets_data[i].velocity_z0]
+
     if os.path.isfile(csv_path):
-        print("Diffur solution data file exists")
-        pass
-    else:
-        # Initial conditions array
-        y_0_system = []
-        if Asteroid.count > 0:
-            for i in range(Asteroid.count):
-                y_0_system = y_0_system + [Asteroid_data[i].x0, Asteroid_data[i].velocity_x0,
-                                        Asteroid_data[i].y0, Asteroid_data[i].velocity_y0,
-                                        Asteroid_data[i].z0, Asteroid_data[i].velocity_z0]
+        if solution_data_check(csv_path, y_0_system) == True:
+            print("Diffur solution data file exists")
+            return
+    
+    mu_planets = []
+    for i in range(Planet.count):
+        mu_planets = mu_planets + [Planets_data[i].mu]
 
-        for i in range(Planet.count):
-            y_0_system = y_0_system + [Planets_data[i].x0, Planets_data[i].velocity_x0,
-                                    Planets_data[i].y0, Planets_data[i].velocity_y0,
-                                    Planets_data[i].z0, Planets_data[i].velocity_z0]
+    # Solving the system
+    sol_asteroid = odeint(system_asteroid_3D, y_0_system, t, args = (Planet.count, mu_planets, Asteroid.count))
+    print("Diffur solved")
 
-        mu_planets = []
-        for i in range(Planet.count):
-            mu_planets = mu_planets + [Planets_data[i].mu]
-
-        # Solving the system
-        sol_asteroid = odeint(system_asteroid_3D, y_0_system, t, args = (Planet.count, mu_planets, Asteroid.count))
-        print("Diffur solved")
-
-        # Save the solution to csv
-        np.savetxt(csv_path, sol_asteroid, delimiter = ",")
-        print("Solution saved to csv file")
+    # Save the solution to csv
+    np.savetxt(csv_path, sol_asteroid, delimiter = ",")
+    print("Solution saved to csv file")
 
 
 def create_solution_folder():
@@ -78,21 +80,35 @@ def create_solution_folder():
     return folder_path
 
 
-def csv_name_design(Planets_data, date_input, asteroid_data):
+def solution_data_check(csv_path, y_0_system):
+    solution_data = np.loadtxt(csv_path, delimiter = ",")
+    for i in range(len(y_0_system)):
+        if solution_data[0][i] != y_0_system[i]:
+            return False
+    else:
+        return True
+
+
+def csv_name_design(Planets_data, date_input, Asteroid_input):
     csv_name = ""
+
+    # date
     if date_input == "today":
         csv_date = f"{date.today()}_"
     else:
         csv_date = f"{date_input}_"
+
+    # planets
     csv_plantes = "Pl_"
     for i in range(Planet.count):
         csv_plantes += f"{Planets_data[i].name.replace('/', '_').replace(' ', '_')}_"
+    
+    # asteroids
     csv_asteroids = "Ast_"
     if Asteroid.count == 0:
-        csv_asteroids += "no_asteroids_"
+        csv_asteroids += "no_asteroids"
     else:
-        for i in range(Asteroid.count):
-            csv_asteroids += f"{asteroid_data[i].name.replace('/', '_').replace(' ', '_')}_"
+        csv_asteroids += f"{len(Asteroid_input[0])}_CustAst_{len(Asteroid_input[1])}"
 
     csv_name = csv_date + csv_plantes + csv_asteroids + ".csv"
     return csv_name

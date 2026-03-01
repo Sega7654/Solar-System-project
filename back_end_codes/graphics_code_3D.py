@@ -18,7 +18,7 @@ from back_end_codes.solving_code_3D import csv_name_design, diffur_solving_3D, t
 #tekainter - old lib for GUI graphics
 #customtekainter - good lib for GUI graphics
 
-def graph_module_3D(date_input, graph_speed):
+def graph_module_3D(date_input, graph_speed, Asteroid_input):
     # Just a setup for graphing
     Planets_graph_data = {"Mercury":{"ms":4,  "color":"grey"},
                         "Venus":{"ms":5,  "color":"orange"},
@@ -35,7 +35,7 @@ def graph_module_3D(date_input, graph_speed):
     # Get data from the saved csv file
     script_dir = os.path.dirname(os.path.abspath(__file__))
     folder_path = os.path.join(f"{script_dir}", "Diffur_solution_data")
-    csv_path = os.path.join(folder_path, f"{csv_name_design(Planet.instances, date_input, Asteroid.instances)}")
+    csv_path = os.path.join(folder_path, f"{csv_name_design(Planet.instances, date_input, Asteroid_input)}")
     data = np.loadtxt(csv_path, delimiter=",")
 
 
@@ -195,7 +195,25 @@ def graph_module_3D(date_input, graph_speed):
     # the animation itself
     animation = FuncAnimation(fig, update, interval=1, blit=False, repeat=True,
                         frames = graphics_simulation_speed)
-    plt.show()
+
+    # ensure the animation is stopped when the figure is closed to avoid
+    # Tkinter errors like "invalid command name \"...idle_draw\"" that occur
+    # when the animation tries to draw after the GUI widget has been destroyed.
+    def _on_close(evt):
+        try:
+            animation.event_source.stop()
+        except Exception:
+            pass
+
+    fig.canvas.mpl_connect('close_event', _on_close)
+
+    # display the plot and catch any low-level exceptions raised by the GUI
+    try:
+        plt.show()
+    except Exception as e:
+        # the underlying backend may raise a TclError when the window is
+        # closed while the timer is still running; we can safely ignore it.
+        print("[graphics_code_3D] warning: plot terminated with", e)
 
 
 # function for dynamic date update in legend

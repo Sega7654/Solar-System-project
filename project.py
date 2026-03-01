@@ -1,6 +1,5 @@
 from back_end_codes import *
 
-
 ## RUN ME :)
 
 
@@ -12,7 +11,7 @@ def main():
         try:
             # User input check
             my_input = input("\nMy input: ")
-            if my_input not in ["1","2","3","4","5","help"]:
+            if my_input not in ["1","2","3","4","5","help", "Q1"]:
                 raise NameError("\n!!!Invalid input, pls follow the TUI guide!!!")
             # Planets setup
             if my_input == "1":
@@ -22,7 +21,9 @@ def main():
                 date_input = date_input_fun()
             # Asteroid setup
             if my_input == "3":
-                asteroid_input = asteroid_input_fun()
+                if "date_input" not in locals():
+                    raise ValueError("!!!No date setup for simulation. Use 2 to setup date!!!")
+                asteroid_input = asteroid_input_fun(Planets_input, date_input)
             # API call, Classes assert, Solving the Diffur + graphics
             if my_input == "4":
                 if "Planets_input" not in locals():
@@ -34,7 +35,7 @@ def main():
                 simulation_starting_message(Planets_input, date_input, asteroid_input)
                 diffur_solving_3D(Planets_input, date_input, asteroid_input)
                 graph_speed = graph_setup_fun()
-                graph_module_3D(date_input, graph_speed)
+                graph_module_3D(date_input, graph_speed, asteroid_input)
             # Just exit
             if my_input == "5":
                 time.sleep(1)
@@ -43,10 +44,27 @@ def main():
             # TUI guide
             if my_input == "help":
                 TUI_guide()
+            # Quick run 1
+            if my_input == "Q1":
+                Planets_input = ["Earth", "Mars"]
+                date_input = "2024-01-01"
+                asteroid_input = [['Ceres'], {'0': {'x_0': -15.0, 'y_0': -2.0, 'z_0': -3.0, 'vx_0': -10.0, 'vy_0': -4.0, 'vz_0': 7.0}}]
+                diffur_solving_3D(Planets_input, date_input, asteroid_input)
+                graph_module_3D(date_input, 15, asteroid_input)
         except NameError as e:
             print(f"{e}")
         except ValueError as e:
             print(f"{e}")
+
+
+
+
+
+
+
+
+
+
 
 
 # Check for correct date input format

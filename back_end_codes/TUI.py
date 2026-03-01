@@ -1,5 +1,13 @@
 import re
 import time
+import sys
+import os
+
+SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.dirname(SCRIPT_DIR))
+
+from back_end_codes.NASA_API_3D import asteroid_name_check
+
 
 time_sleep = 1
 
@@ -9,9 +17,9 @@ def intro_fun():
 
 Hello! It is a mini game-project for simulation of our Solar system.
 
-BEFORE RUNNING - pls check required pips in Requirements.txt file, they are required to run this program. (also I personally recomends using venv)
+BEFORE RUNNING - pls check required pips in Requirements.txt file.
 
-You suppose to say which planets you want to simulate and then setup the asteroid/comets to throw inside the system.
+You suppose to say which planets you want to simulate, the simulation start date and setup asteroid/comets to throw inside the system.
 Then - just enjoy the graphical simulation result.
 
 Enjoy :)""")
@@ -24,12 +32,14 @@ Enjoy :)""")
 def TUI_guide():
     time.sleep(time_sleep)
     print("""\nTUI guide:
+To see simulaiton, you need to go through setup. Use simbols, indicated below, to initiate setup or run the simulation.
 1 - Planets setup
 2 - Date setup
 3 - Asteroid/comets setup
 4 - simulation + graphics animation
 5 - Exit
 help - help (this message)
+Q1 - quick run 1
 
 ***points from 1-3 must be setup before starting the simulation***
                            
@@ -134,33 +144,112 @@ Y/N: """).lower().strip()
             return asteroid_check_input
         except ValueError:
             time.sleep(time_sleep)
-            print("Invalid input, try again")
+            print("!!!Invalid input, try again!!!")
+            continue
+
+
+# Check for my_asteroids/comets setup
+def my_asteroid_check():
+    while True:
+        try:
+            asteroid_check_input = input("""\nWould you like to setup ur OWN asteroids?
+Y/N: """).lower().strip()
+            if asteroid_check_input not in ["y", "n"]:
+                raise ValueError("!!!Input must be 'Y' or 'N'!!!")
+            return asteroid_check_input
+        except ValueError:
+            time.sleep(time_sleep)
+            print("!!!Invalid input, try again!!!")
             continue
 
 
 # Asteroid/comets setup
-def asteroid_input_fun():
+def asteroid_input_fun(planets_input, date_input):
     if asteroid_check() == "y":
         time.sleep(time_sleep)
-        print("""\nGreat! Now, gimme the names of asteroids/comets you want to throw inside the system.
+        print("""\nGreat! Now, gimme the name(s) of asteroids/comets you want to throw inside the system.
 Separator - comma. Asteroids/comets names should match their official names
 (or numbers, actually better to use numbers, NASA API love them :)).
-Example of inputs:
-1) Main belt asteroids (between Mars and Jupiter): Ceres, Pallas, Vesta
-2) Famous comets:
-- Hartley 2 (data available from 2010-02-01 to 2012-02-01)
-- c/2025 n1 (name - 3I/Atlas, data available from 2010 to today)
-- 90000702 (name - 67P/Churyumov-Gerasimenko, data available from 2015 to today)
-3) test_asteroid - special name for test asteroid with predefined initial conditions (not from NASA API).
-4) my_asteroid - special name for your custom asteroid, you will be asked to input its initial conditions (position and velocity)""")
-        asteroid_input = input("\nAsteroids/comets input: ").split(",")
-        for i in range(len(asteroid_input)):
-            asteroid_input[i] = asteroid_input[i].strip()
+Example of asteroids/comets inputs:
+-----------------------------------------
+Ceres, Pallas, Vesta - Main belt asteroids (between Mars and Jupiter)
+-----------------------------------------
+Famous comets:
+Hartley 2 (data available from 2010-02-01 to 2012-02-01)
+c/2025 n1 (name - 3I/Atlas, data available from 2010 to today)
+90000702 (name - 67P/Churyumov-Gerasimenko, data available from 2015 to today)
+-----------------------------------------
+test_asteroid - special name for test asteroid with predefined initial conditions (not from NASA API).""")
+        _ = False
+        while _ == False:
+            try:
+                asteroid_input = input("\nAsteroids/comets input: ").split(",")
+                for i in range(len(asteroid_input)):
+                    asteroid_input[i] = asteroid_input[i].strip()
+                _ = asteroid_name_check(asteroid_input, date_input)
+            except NameError as e:
+                print(e)
+        if my_asteroid_check() == "y":
+            my_asteroids = my_asteroid_setup(planets_input)
+        else:
+            my_asteroids = {}
+        asteroid_input = [asteroid_input, my_asteroids]
+        print(f"\nCurrent asteroid/comets setup: {asteroid_input[0]} + {len(asteroid_input[1])} custom asteroids")
     else:
         time.sleep(time_sleep)
-        print("Meh, no asteroids/comets will be added to the system :(")
+        print("Meh, asteroid setup is complete but no asteroids/comets will be added to the system :(")
         asteroid_input = []
     return asteroid_input
+
+
+def my_asteroid_setup(Planets_input):
+    print("""\nYou choose to throw ur own asteroids. This is their setup.""")
+    print(f"""A word of explanation for this setup. I need from you initial conditions (IC) of your asteroids: Coordinates and velocities.
+IC in cartesian coordinates, with center in the Sun and X, Y axis in Earth plane.
+Technically you may setup ur asteroids as you want, however giving too large/small IC may mess up with simulation or graphics. (ur asteroid might be too far away from ur planets or fly away from Solar system)
+
+COORDINATES: I need coordinates in AU (positive or negative). 1 AU is ~ equal to Earth orbit radius.
+HINT: The best way would be to use in coordinates no more than 2 or 3 times of ur largest planet orbital radius (which you already put in the system).
+Your current planets max radius is {planet_max_radius(Planets_input)} AU.
+
+VELOCITIES: I need velocities in km/s.
+HINT: 3rd cosmic velocity for Solar system is ~ 42 km/s. Hence, if u want ur asteroid to stay in it, use less.""")
+
+
+    time.sleep(time_sleep)
+    while True:
+        try:
+            my_asteroid_count = int(input("\nHow many asteroid u wanna throw? Number of ur asteroids: "))
+            break
+        except ValueError:
+            print("!!!Please enter a valid integer!!!")
+    my_asteroids = {}
+    while True:
+        try:
+            for i in range(my_asteroid_count):
+                my_asteroids[f"{i}"] = {}
+                print(f"\nAsteroid {i + 1} coordinates (in AU):")
+                my_asteroids[f"{i}"]["x_0"] = float(input(f"Gimme x0 for my_asteroid_{i + 1}: "))
+                my_asteroids[f"{i}"]["y_0"] = float(input(f"Gimme y0 for my_asteroid_{i + 1}: "))
+                my_asteroids[f"{i}"]["z_0"] = float(input(f"Gimme z0 for my_asteroid_{i + 1}: "))
+                print(f"\nAsteroid {i + 1} velocities in (km/s):")
+                my_asteroids[f"{i}"]["vx_0"] = float(input(f"Gimme vx0 for my_asteroid_{i + 1}: "))
+                my_asteroids[f"{i}"]["vy_0"] = float(input(f"Gimme vy0 for my_asteroid_{i + 1}: "))
+                my_asteroids[f"{i}"]["vz_0"] = float(input(f"Gimme vz0 for my_asteroid_{i + 1}: "))
+            return my_asteroids
+        except ValueError:
+            print("!!!Please enter a valid float number!!!")    
+
+
+def planet_max_radius(Planets_input):
+    planets_radius = {"Mercury": 0.39, "Venus": 0.72, "Earth": 1, "Mars": 1.52, 
+                 "Jupiter": 5.2, "Saturn": 9.54, "Uranus": 19.2, "Neptune": 30.06, "Pluto": 39.48}
+    max_radius = 0
+    for planet in Planets_input:
+        if planets_radius[planet] > max_radius:
+            max_radius = planets_radius[planet]
+    return max_radius
+
 
 
 # Simulation starting message
@@ -176,7 +265,7 @@ def simulation_starting_message(Planets_input, date_input, Asteroid_input):
         print("No asteroids/comets will be added to the system")
     else:
         time.sleep(time_sleep)
-        print(f"{len(Asteroid_input)} Asteroids/comets will be added to the system")
+        print(f"{len(Asteroid_input[0])} Asteroids/comets and {len(Asteroid_input[1])} custom asteroids will be added to the system")
     time.sleep(time_sleep)
     print("Starting simulation...\n")
     time.sleep(time_sleep)
@@ -184,7 +273,8 @@ def simulation_starting_message(Planets_input, date_input, Asteroid_input):
 
 def main():
     # date_input_fun()
-    print(f"{Planets_input_fun()}")
+    # print(f"{Planets_input_fun()}")
+    print(asteroid_input_fun(["Earth", "Mars"], "today"))
 
 
 if __name__ == "__main__":

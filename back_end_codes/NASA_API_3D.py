@@ -211,6 +211,13 @@ def GM_API_key_construction(Planet_name):
     return API_key_GM
 
 
+def asteroid_name_check(ast_list, date_input):
+    for ast in ast_list:
+        if ast != "test_asteroid" or ast != "my_asteroid":
+            retrieve_Ephemeris_data(ast, date_input)
+    return True
+
+
 def main():
     print("NASA API module - main")
     # API_test_key = "https://ssd.jpl.nasa.gov/api/horizons.api?format=json&COMMAND='C/2025 N1'&OBJ_DATA='YES'&MAKE_EPHEM='YES'&EPHEM_TYPE='VECTOR'&CENTER='@sun'&START_TIME='2025-11-01'&STOP_TIME='2025-11-02'&STEP_SIZE='1 mo'&QUANTITIES='2'"

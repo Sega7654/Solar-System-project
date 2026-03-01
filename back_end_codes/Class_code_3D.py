@@ -70,32 +70,33 @@ def assert_Planets_class(Planet_input, date_input):
 def assert_Asteroid_class(Asteroid_input = ["test_asteroid"], date_input = "today"):
     Asteroid.refresh()
     AU = 149597870700 / 1000 #km
+
+    # No asteroids case
     if Asteroid_input == []:
         return Asteroid.instances
-    j = 1
-    for i in range(len(Asteroid_input)):
-        if Asteroid_input[i] == "test_asteroid":
+    
+    # API asteroid case
+    for i in range(len(Asteroid_input[0])):
+        if Asteroid_input[0][i] == "test_asteroid":
             My_asteroid = Asteroid(name = "test_asteroid", r_0 = [max_radius(), 2*AU, 1*AU], velocity_0 = [-20, 1, -1])
-        elif Asteroid_input[i] == "my_asteroid":
-            print(f"\nThis is setup for ur custom asteroid_{j}")
-            print("Position data in AU (1 AU ~ equal to Earth orbit radius)")
-            print("Velocity data - in km/s")
-            x_0 = float(input(f"Gimme x0 for my_asteroid_{j} (in AU): "))
-            y_0 = float(input(f"Gimme y0 for my_asteroid_{j} (in AU): "))
-            z_0 = float(input(f"Gimme z0 for my_asteroid_{j} (in AU): "))
-            vx_0 = float(input(f"Gimme vx0 for my_asteroid_{j} (in km/s): "))
-            vy_0 = float(input(f"Gimme vy0 for my_asteroid_{j} (in km/s): "))
-            vz_0 = float(input(f"Gimme vz0 for my_asteroid_{j} (in km/s): "))
-            print("")
-            My_asteroid = Asteroid(name = f"my_asteroid_{j}", r_0 = [x_0 * AU, y_0 * AU, z_0 * AU], velocity_0 = [vx_0, vy_0, vz_0])
-            j += 1
-
         else:
-            asteroid_API_data = get_API_data(Asteroid_input[i], date_input, asteroid = True)
-            new_asteroid = Asteroid(name = Asteroid_input[i],
+            asteroid_API_data = get_API_data(Asteroid_input[0][i], date_input, asteroid = True)
+            new_asteroid = Asteroid(name = Asteroid_input[0][i],
                             r_0 = [asteroid_API_data["Ephem_data"]["X"] * AU, asteroid_API_data["Ephem_data"]["Y"] * AU, asteroid_API_data["Ephem_data"]["Z"] * AU],
                             velocity_0 = [asteroid_API_data["Ephem_data"]["VX"], asteroid_API_data["Ephem_data"]["VY"], asteroid_API_data["Ephem_data"]["VZ"]])
     
+    # My asteroids case
+    if len(Asteroid_input[1]) != 0:
+        for i in range(len(Asteroid_input[1])):
+            x_0 = Asteroid_input[1][f"{i}"]["x_0"]
+            y_0 = Asteroid_input[1][f"{i}"]["y_0"]
+            z_0 = Asteroid_input[1][f"{i}"]["z_0"]
+            vx_0 = Asteroid_input[1][f"{i}"]["vx_0"]
+            vy_0 = Asteroid_input[1][f"{i}"]["vy_0"]
+            vz_0 = Asteroid_input[1][f"{i}"]["vz_0"]
+            My_asteroid = Asteroid(name = f"my_asteroid_{i + 1}", r_0 = [x_0 * AU, y_0 * AU, z_0 * AU], velocity_0 = [vx_0, vy_0, vz_0])
+            print("My asteroids asserted")
+
     print("Asteroid class asserted")
     return Asteroid.instances
 
